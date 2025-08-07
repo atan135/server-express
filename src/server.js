@@ -29,3 +29,15 @@ const PORT = process.env.PORT || 3000;
     process.exit(1);
   }
 })();
+
+const eventLoopLag = require("event-loop-lag");
+const lag = eventLoopLag(1);
+
+setInterval(() => {
+  const lagValue = lag();
+  if (lagValue > 100) {
+    serverLogger.warn("Event loop lag:", lagValue, "ms");
+  } else {
+    serverLogger.info("Event loop lag:", lagValue, "ms");
+  }
+}, 5000);

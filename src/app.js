@@ -1,5 +1,6 @@
 //require("dotenv").config();
 const express = require("express");
+const compression = require("compression");
 const { httpLogger } = require("./middleware/logger.middleware");
 const authRoutes = require("./routes/auth.routes");
 const routes = require("./routes/index");
@@ -12,6 +13,8 @@ app.use(httpLogger);
 // Built-in middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use(compression());
 
 // Routes
 app.use("/api/auth", authRoutes);

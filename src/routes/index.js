@@ -18,11 +18,14 @@ router.get("/", (req, res) => {
 // write routes here with /test and use async await
 router.get("/test", async (req, res) => {
   try {
+    appLogger.info("Test route accessed");
+    /*
     let user = await UserModel.create({
       username: "testuser",
       email: "test@example.com",
       password: "testpassword",
     });
+    */
     let userlist = await UserModel.findAll();
     res.json({
       message: "Test route accessed successfully",
