@@ -2,6 +2,7 @@
 const express = require("express");
 const compression = require("compression");
 const { httpLogger } = require("./middleware/logger.middleware");
+const { sanitizeRequest } = require("./middleware/validation.middleware");
 const authRoutes = require("./routes/auth.routes");
 const routes = require("./routes/index");
 
@@ -9,6 +10,9 @@ const app = express();
 
 // Add logging middleware
 app.use(httpLogger);
+
+// Add sanitization middleware
+app.use(sanitizeRequest);
 
 // Built-in middleware
 app.use(express.json());

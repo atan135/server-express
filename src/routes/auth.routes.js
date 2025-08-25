@@ -3,22 +3,15 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const UserModel = require("../models/user.model");
 const { logger } = require("../middleware/logger.middleware");
+const { validationChains, handleValidationErrors } = require("../middleware/validation.middleware");
 
 const router = express.Router();
 const authLogger = logger("auth");
 
 // Register endpoint
-router.post("/register", async (req, res) => {
+router.post("/register", validationChains.userRegistration(), handleValidationErrors, async (req, res) => {
   try {
     const { username, email, password } = req.body;
-
-    // Validate input
-    if (!username || !email || !password) {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "Username, email, and password are required",
-      });
-    }
 
     // Check if user already exists
     const existingUser = await UserModel.findByEmail(email);
@@ -58,17 +51,9 @@ router.post("/register", async (req, res) => {
 });
 
 // Login endpoint
-router.post("/login", async (req, res) => {
+router.post("/login", validationChains.userLogin(), handleValidationErrors, async (req, res) => {
   try {
     const { email, password } = req.body;
-
-    // Validate input
-    if (!email || !password) {
-      return res.status(400).json({
-        error: "Bad Request",
-        message: "Email and password are required",
-      });
-    }
 
     // Find user
     const user = await UserModel.findByEmail(email);
