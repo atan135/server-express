@@ -8,6 +8,9 @@ module.exports = {
   user: process.env.DB_USER || "myuser",
   password: process.env.DB_PASSWORD || "mypassword",
   waitForConnections: true,
-  connectionLimit: 10,
+  connectionLimit: 20,
+  acquireTimeout: 60000,
+  timeout: 60000,
+  reconnect: true,
   queueLimit: 0,
 };
