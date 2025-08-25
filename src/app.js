@@ -5,6 +5,7 @@ const { httpLogger } = require("./middleware/logger.middleware");
 const { sanitizeRequest } = require("./middleware/validation.middleware");
 const authRoutes = require("./routes/auth.routes");
 const routes = require("./routes/index");
+const demoRoutes = require("./routes/demo.routes");
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use(compression());
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api", routes);
+app.use("/api/demo", demoRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
