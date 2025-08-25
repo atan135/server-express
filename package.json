@@ -26,7 +26,8 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "log4js": "^6.9.1",
-    "mysql2": "^3.14.3"
+    "mysql2": "^3.14.3",
+    "redis": "^4.6.13"
   },
   "devDependencies": {
     "cross-env": "^10.0.0",
