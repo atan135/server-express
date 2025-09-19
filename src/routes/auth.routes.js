@@ -2,6 +2,7 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const UserModel = require("../models/user.model");
+const NetworkUtil = require("../utils/network.util");
 const { logger } = require("../middleware/logger.middleware");
 const { validationChains, handleValidationErrors } = require("../middleware/validation.middleware");
 const { authenticate } = require("../middleware/auth.middleware");
@@ -11,7 +12,7 @@ const authLogger = logger("auth");
 // Register endpoint
 router.post("/register", validationChains.userRegistration(), handleValidationErrors, async (req, res) => {
   try {
-    const { username, email, password, confirmPassword, role, fullName } = req.body;
+    const { username, email, password, confirmPassword, role, fullName, location, network, device } = req.body;
 
     // Check if password and confirmPassword match
     if (password !== confirmPassword) {
@@ -53,6 +54,23 @@ router.post("/register", validationChains.userRegistration(), handleValidationEr
 
     authLogger.info("User registered", { userId: user.id, username: user.username, email: user.email });
 
+    // get request ip using utility function
+    const ipAddress = NetworkUtil.getClientIP(req);
+    // record register
+    const registerData = {
+      userid: user.id,
+      username,
+      email,
+      roleid,
+      fullName,
+      location,
+      network,
+      device,
+      ipAddress,
+    };
+    await UserModel.recordRegister(registerData);
+
+
     res.status(200).json({
       errcode: 0,
       errmsg: "User registered successfully",
@@ -76,7 +94,7 @@ router.post("/register", validationChains.userRegistration(), handleValidationEr
 // Login endpoint
 router.post("/login", validationChains.userLogin(), handleValidationErrors, async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { username, password, location, network, device } = req.body;
     authLogger.info("Login request", { username: username, password: password });
     // Find user
     const user = await UserModel.findByUsername(username);
@@ -103,8 +121,25 @@ router.post("/login", validationChains.userLogin(), handleValidationErrors, asyn
       expiresIn: process.env.JWT_EXPIRES_IN,
     });
 
-    authLogger.info("User logged in", { userId: user.id, username: user.username });
+    // get request ip using utility function
+    const ipAddress = NetworkUtil.getClientIP(req);
+    // record login
+    const loginData = {
+      userid: user.id,
+      username,
+      email: user.email,
+      roleid: user.roleid,
+      fullName: user.fullName,
+      token,
+      location,
+      network,
+      device,
+      ipAddress,
+    };
+    await UserModel.recordLogin(loginData);
 
+
+    authLogger.info("User logged in", { userId: user.id, username: user.username, ipAddress: ipAddress });
     // Remove password from response
     const { password: _, ...userWithoutPassword } = user;
 
@@ -127,8 +162,20 @@ router.post("/login", validationChains.userLogin(), handleValidationErrors, asyn
 // Logout endpoint
 router.post("/logout", authenticate, async (req, res) => {
   try {
-    const { userId } = req.user;
-    authLogger.info("Logout request", { userId: userId });
+    let user = req.user;
+    let token = req.token;
+    const ipAddress = NetworkUtil.getClientIP(req);
+
+    authLogger.info("Logout request", {
+      userId: user.id,
+      ipAddress: ipAddress
+    });
+
+    await UserModel.recordLogout(user.id, token);
+
+    authLogger.info("User logged out", { userId: user.id, ipAddress: ipAddress });
+
+
     res.status(200).json({
       errcode: 0,
       errmsg: "Logout successful",

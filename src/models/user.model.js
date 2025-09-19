@@ -43,7 +43,7 @@ class UserModel {
   // Find user by username
   static async findByUsername(username) {
     const [rows] = await db.query(
-      "SELECT id, username, email, password FROM users WHERE username = ?",
+      "SELECT id, username, email, password, fullName, roleid FROM users WHERE username = ?",
       [username]
     );
 
@@ -70,6 +70,33 @@ class UserModel {
   static async getRole(name) {
     const [rows] = await db.query("SELECT id, rolename, paramlist FROM roles WHERE rolename = ?", [name]);
     return rows[0];
+  }
+
+  // record register
+  static async recordRegister(registerData) {
+    const { userid, username, email, roleid, fullName, location, network, device, ipAddress } = registerData;
+    const [result] = await db.query(
+      "INSERT INTO loginrecord (recordtype, userid, username, email, roleid, fullName, location, network, deviceinfo, ip) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      [1, userid, username, email, roleid, fullName, location, network, device, ipAddress]
+    );
+    return result;
+  }
+  // record login
+  static async recordLogin(loginData) {
+    const { userid, username, email, roleid, fullName, token, location, network, device, ipAddress } = loginData;
+    const [result] = await db.query(
+      "INSERT INTO loginrecord (recordtype, userid, username, email, roleid, fullName, token, location, network, deviceinfo, ip) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      [2, userid, username, email, roleid, fullName, token, location, network, device, ipAddress]
+    );
+    return result;
+  }
+  // record logout
+  static async recordLogout(userid, token) {
+    const [result] = await db.query(
+      "update loginrecord set updated_at = now() where userid = ? and token = ?",
+      [userid, token]
+    );
+    return result;
   }
 }
 
