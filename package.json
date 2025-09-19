@@ -31,7 +31,9 @@
     "log4js": "^6.9.1",
     "mysql2": "^3.14.3",
     "qiniu": "^7.9.2",
-    "redis": "^4.6.13"
+    "redis": "^4.6.13",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1"
   },
   "devDependencies": {
     "cross-env": "^10.0.0",

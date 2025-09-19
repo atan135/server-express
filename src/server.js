@@ -5,9 +5,11 @@ const envFile = process.env.NODE_ENV ? `.env.${process.env.NODE_ENV}` : ".env";
 console.log(envFile);
 require("dotenv").config({ path: path.resolve(process.cwd(), envFile) });
 
+const http = require("http");
 const app = require("./app");
 const { logger } = require("./middleware/logger.middleware");
 const db = require("./utils/database.util");
+const websocketService = require("./services/websocket.service");
 
 const serverLogger = logger("server");
 
@@ -19,9 +21,20 @@ const PORT = process.env.PORT || 3000;
     const [rows] = await db.query("SELECT 1");
     serverLogger.info("Database connection established");
 
+    // Create HTTP server
+    const server = http.createServer(app);
+
+    // Initialize WebSocket service
+    websocketService.initialize(server, {
+      origin: process.env.CORS_ORIGIN || "*",
+      methods: ["GET", "POST"],
+      credentials: true
+    });
+
     // Start server
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       serverLogger.info(`Server is running on port ${PORT}`);
+      serverLogger.info(`WebSocket service is ready`);
       //console.log(`Server is running on port ${PORT}`);
     });
   } catch (error) {
@@ -37,7 +50,8 @@ setInterval(() => {
   const lagValue = lag();
   if (lagValue > 100) {
     serverLogger.warn("Event loop lag:", lagValue, "ms");
-  } else {
-    serverLogger.info("Event loop lag:", lagValue, "ms");
   }
+  //else {
+  //  serverLogger.info("Event loop lag:", lagValue, "ms");
+  //}
 }, 5000);

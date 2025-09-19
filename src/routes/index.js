@@ -4,6 +4,11 @@ const { logger } = require("../middleware/logger.middleware");
 
 const UserModel = require("../models/user.model");
 
+// Import route modules
+const authRoutes = require("./auth.routes");
+const demoRoutes = require("./demo.routes");
+const websocketRoutes = require("./websocket.routes");
+
 const router = express.Router();
 const appLogger = logger("app");
 
@@ -56,5 +61,10 @@ router.get("/health", (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+// Mount route modules
+router.use("/auth", authRoutes);
+router.use("/demo", demoRoutes);
+router.use("/websocket", websocketRoutes);
 
 module.exports = router;
