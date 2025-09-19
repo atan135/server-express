@@ -21,6 +21,7 @@
     "axios": "^1.6.7",
     "bcryptjs": "^3.0.2",
     "compression": "^1.8.1",
+    "csrf": "^3.1.0",
     "dayjs": "^1.11.13",
     "dotenv": "^17.2.1",
     "event-loop-lag": "^1.4.0",

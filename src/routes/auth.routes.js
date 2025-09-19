@@ -3,14 +3,18 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const UserModel = require("../models/user.model");
 const NetworkUtil = require("../utils/network.util");
+const csrfMiddleware = require("../middleware/csrf.middleware");
 const { logger } = require("../middleware/logger.middleware");
 const { validationChains, handleValidationErrors } = require("../middleware/validation.middleware");
 const { authenticate } = require("../middleware/auth.middleware");
 const router = express.Router();
 const authLogger = logger("auth");
 
+// CSRF token generation endpoint (no CSRF protection needed)
+router.get("/csrf-token", csrfMiddleware.generateTokenEndpoint());
+
 // Register endpoint
-router.post("/register", validationChains.userRegistration(), handleValidationErrors, async (req, res) => {
+router.post("/register", csrfMiddleware.protect(), validationChains.userRegistration(), handleValidationErrors, async (req, res) => {
   try {
     const { username, email, password, confirmPassword, role, fullName, location, network, device } = req.body;
 
@@ -92,7 +96,7 @@ router.post("/register", validationChains.userRegistration(), handleValidationEr
 });
 
 // Login endpoint
-router.post("/login", validationChains.userLogin(), handleValidationErrors, async (req, res) => {
+router.post("/login", csrfMiddleware.protect(), validationChains.userLogin(), handleValidationErrors, async (req, res) => {
   try {
     const { username, password, location, network, device } = req.body;
     authLogger.info("Login request", { username: username, password: password });
@@ -160,7 +164,7 @@ router.post("/login", validationChains.userLogin(), handleValidationErrors, asyn
 });
 
 // Logout endpoint
-router.post("/logout", authenticate, async (req, res) => {
+router.post("/logout", csrfMiddleware.protect(), authenticate, async (req, res) => {
   try {
     let user = req.user;
     let token = req.token;
@@ -173,12 +177,20 @@ router.post("/logout", authenticate, async (req, res) => {
 
     await UserModel.recordLogout(user.id, token);
 
-    authLogger.info("User logged out", { userId: user.id, ipAddress: ipAddress });
+    // Revoke CSRF token for this session
+    const sessionId = csrfMiddleware.getSessionId(req);
+    csrfMiddleware.revokeToken(sessionId);
 
+    authLogger.info("User logged out", {
+      userId: user.id,
+      ipAddress: ipAddress,
+      sessionId: sessionId
+    });
 
     res.status(200).json({
       errcode: 0,
       errmsg: "Logout successful",
+      sessionId: sessionId
     });
   } catch (error) {
     authLogger.error("Logout error", { error: error.message });
@@ -186,6 +198,25 @@ router.post("/logout", authenticate, async (req, res) => {
       errcode: 1,
       error: "Internal Server Error",
       errmsg: "Failed to logout",
+    });
+  }
+});
+
+// CSRF stats endpoint (for monitoring)
+router.get("/csrf-stats", authenticate, (req, res) => {
+  try {
+    const stats = csrfMiddleware.getStats();
+    res.json({
+      errcode: 0,
+      errmsg: "CSRF stats retrieved successfully",
+      stats
+    });
+  } catch (error) {
+    authLogger.error("CSRF stats error", { error: error.message });
+    res.status(500).json({
+      errcode: 1,
+      error: "Internal Server Error",
+      errmsg: "Failed to get CSRF stats"
     });
   }
 });
