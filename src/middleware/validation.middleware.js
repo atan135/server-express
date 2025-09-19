@@ -8,14 +8,14 @@ const validationLogger = logger("validation");
  */
 const commonValidators = {
   // String validators
-  string: (field, minLength = 1, maxLength = 255) => 
+  string: (field, minLength = 1, maxLength = 255) =>
     body(field)
       .trim()
       .isLength({ min: minLength, max: maxLength })
       .withMessage(`${field} must be between ${minLength} and ${maxLength} characters`),
 
   // Email validator
-  email: (field = 'email') => 
+  email: (field = 'email') =>
     body(field)
       .trim()
       .isEmail()
@@ -23,7 +23,7 @@ const commonValidators = {
       .withMessage('Please provide a valid email address'),
 
   // Password validator
-  password: (field = 'password', minLength = 6) => 
+  password: (field = 'password', minLength = 6) =>
     body(field)
       .isLength({ min: minLength })
       .withMessage(`Password must be at least ${minLength} characters long`)
@@ -31,7 +31,7 @@ const commonValidators = {
       .withMessage('Password must contain at least one lowercase letter, one uppercase letter, and one number'),
 
   // Username validator
-  username: (field = 'username') => 
+  username: (field = 'username') =>
     body(field)
       .trim()
       .isLength({ min: 3, max: 30 })
@@ -53,31 +53,31 @@ const commonValidators = {
   },
 
   // Boolean validator
-  boolean: (field) => 
+  boolean: (field) =>
     body(field)
       .isBoolean()
       .withMessage(`${field} must be true or false`),
 
   // Date validator
-  date: (field) => 
+  date: (field) =>
     body(field)
       .isISO8601()
       .withMessage(`${field} must be a valid date`),
 
   // URL validator
-  url: (field) => 
+  url: (field) =>
     body(field)
       .isURL()
       .withMessage(`${field} must be a valid URL`),
 
   // Phone number validator
-  phone: (field = 'phone') => 
+  phone: (field = 'phone') =>
     body(field)
       .matches(/^[\+]?[1-9][\d]{0,15}$/)
       .withMessage('Please provide a valid phone number'),
 
   // UUID validator
-  uuid: (field) => 
+  uuid: (field) =>
     body(field)
       .isUUID()
       .withMessage(`${field} must be a valid UUID`),
@@ -99,13 +99,13 @@ const commonValidators = {
  */
 const paramValidators = {
   // ID parameter validator
-  id: (paramName = 'id') => 
+  id: (paramName = 'id') =>
     param(paramName)
       .isInt({ min: 1 })
       .withMessage(`${paramName} must be a positive integer`),
 
   // UUID parameter validator
-  uuid: (paramName = 'id') => 
+  uuid: (paramName = 'id') =>
     param(paramName)
       .isUUID()
       .withMessage(`${paramName} must be a valid UUID`)
@@ -138,7 +138,7 @@ const queryValidators = {
   ],
 
   // Search validator
-  search: () => 
+  search: () =>
     query('search')
       .optional()
       .isString()
@@ -186,7 +186,7 @@ const validationChains = {
 
   // User login validation
   userLogin: () => [
-    commonValidators.email('email'),
+    commonValidators.username('username'),
     body('password')
       .notEmpty()
       .withMessage('Password is required')
@@ -225,7 +225,7 @@ const validationChains = {
  */
 const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
-  
+
   if (!errors.isEmpty()) {
     validationLogger.warn('Validation failed', {
       url: req.originalUrl,
@@ -278,20 +278,20 @@ const sanitizeRequest = (req, res, next) => {
 module.exports = {
   // Common validators
   commonValidators,
-  
+
   // Parameter validators
   paramValidators,
-  
+
   // Query validators
   queryValidators,
-  
+
   // Predefined validation chains
   validationChains,
-  
+
   // Middleware functions
   handleValidationErrors,
   sanitizeRequest,
-  
+
   // Individual validators for custom chains
   body,
   param,
